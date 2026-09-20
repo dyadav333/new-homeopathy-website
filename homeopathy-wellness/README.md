@@ -2,7 +2,11 @@
 
 An original full-stack homeopathic consultation platform — human & animal tracks, multi-doctor
 booking, patient/doctor/admin panels, medicine orders, and payments. Built in phases; this is
-**Phase 1: Foundation** (project setup, database, auth/roles, design system, public pages).
+**Phase 1: Foundation** with an initial patient booking and workspace slice (project setup,
+database, auth/roles, design system, public pages, appointments, intake, and patient tools).
+
+The product requirements, reference limitations, route map, journeys, and traceability status are
+documented in `docs/reference-analysis.md`, `docs/site-map.md`, and `docs/requirements-matrix.md`.
 
 Inspired by the *workflow structure* of an existing homeopathy consultation site — no copied
 branding, text, images, or code. See `PROJECT-NOTES.md` (if provided separately) for the full
@@ -59,12 +63,15 @@ and never put real patient information into these records.
 server-side `requireRole` double-check), public pages reading live data from the database
 (doctors, pricing, FAQs, blog, testimonials), the contact form (stores real submissions), and
 the customer booking flow (doctor/time selection, intake form, demo payment confirmation, and
-patient dashboard history).
+patient dashboard history). The patient workspace also includes profile editing, local profile
+photos, appointment history/cancellation, private local record upload/download, tests, medicine
+order creation/history, feedback, and settings.
 
 **Mocked / not yet built** (by design, per the phased build plan — never silently faked in
-production, always labeled): live payment gateway/webhooks, document upload, medicine orders,
-notifications (email/SMS/WhatsApp), video consultation links, and the full admin CMS. The local
-booking flow records a clearly labeled demo payment so the customer journey can be tested safely.
+production, always labeled): live payment gateway/webhooks, production object storage and virus
+scanning, practitioner consultation workflow, catalog-backed medicine fulfillment, notifications
+(email/SMS/WhatsApp), video consultation links, and the full admin CMS. The local booking flow
+records a clearly labeled demo payment so the customer journey can be tested safely.
 
 ## Moving to Postgres later
 
@@ -101,6 +108,13 @@ src/middleware.ts         Edge-level role gating for /admin, /doctor, /patient
 7. Notifications: email/SMS/WhatsApp + scheduled reminders
 8. Testing & security pass
 9. Deployment (Vercel + managed Postgres + object storage + webhooks)
+
+## Master specification
+
+The master product prompt is implemented incrementally. The current repository intentionally keeps
+SQLite for local development and uses provider placeholders in `.env.example`; production
+PostgreSQL, payments, storage, email, messaging, video, shipping, audit logging, and compliance
+controls require environment/provider decisions and dedicated migrations before launch.
 
 ## Known limitations of this snapshot
 
