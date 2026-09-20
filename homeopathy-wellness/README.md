@@ -66,8 +66,8 @@ Password for all: `Password123!`
 | Role    | Email                                    |
 |---------|-------------------------------------------|
 | Admin   | admin@homeopathywellness.example           |
-| Doctor  | dr.mehta@homeopathywellness.example        |
-| Doctor  | dr.rao@homeopathywellness.example          |
+| Doctor  | dr.priyanka@homeopathywellness.example    |
+| Doctor  | dr.xyz@homeopathywellness.example         |
 | Patient | patient@homeopathywellness.example         |
 
 ⚠️ These are placeholder demo accounts for local development only — never deploy this seed data,

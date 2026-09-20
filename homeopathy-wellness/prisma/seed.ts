@@ -30,12 +30,12 @@ async function main() {
 
   // --- Doctor 1 ---
   const doctor1User = await prisma.user.upsert({
-    where: { email: "dr.mehta@homeopathywellness.example" },
+    where: { email: "dr.priyanka@homeopathywellness.example" },
     update: {},
     create: {
-      email: "dr.mehta@homeopathywellness.example",
-      firstName: "Anjali",
-      lastName: "Mehta",
+      email: "dr.priyanka@homeopathywellness.example",
+      firstName: "Priyanka",
+      lastName: "Yadav",
       passwordHash,
       role: "DOCTOR",
     },
@@ -45,7 +45,7 @@ async function main() {
     update: {},
     create: {
       userId: doctor1User.id,
-      slug: "dr-anjali-mehta",
+      slug: "dr-priyanka-yadav",
       qualifications: "BHMS (Demo qualification — placeholder)",
       bio: "Placeholder biography for demo purposes. Replace with real content via the admin panel.",
       yearsExperience: 15,
@@ -54,12 +54,12 @@ async function main() {
 
   // --- Doctor 2 ---
   const doctor2User = await prisma.user.upsert({
-    where: { email: "dr.rao@homeopathywellness.example" },
+    where: { email: "dr.xyz@homeopathywellness.example" },
     update: {},
     create: {
-      email: "dr.rao@homeopathywellness.example",
-      firstName: "Vikram",
-      lastName: "Rao",
+      email: "dr.xyz@homeopathywellness.example",
+      firstName: "XYZ",
+      lastName: "Yadav",
       passwordHash,
       role: "DOCTOR",
     },
@@ -69,7 +69,7 @@ async function main() {
     update: {},
     create: {
       userId: doctor2User.id,
-      slug: "dr-vikram-rao",
+      slug: "dr-xyz-yadav",
       qualifications: "BHMS, MD (Demo qualification — placeholder)",
       bio: "Placeholder biography for demo purposes. Replace with real content via the admin panel.",
       yearsExperience: 8,
@@ -199,8 +199,8 @@ async function main() {
   console.log("Seed complete.");
   console.log("Demo logins (password for all: Password123!):");
   console.log("  Admin:   admin@homeopathywellness.example");
-  console.log("  Doctor:  dr.mehta@homeopathywellness.example");
-  console.log("  Doctor:  dr.rao@homeopathywellness.example");
+  console.log("  Doctor:  dr.priyanka@homeopathywellness.example");
+  console.log("  Doctor:  dr.xyz@homeopathywellness.example");
   console.log("  Patient: patient@homeopathywellness.example");
 }
 
