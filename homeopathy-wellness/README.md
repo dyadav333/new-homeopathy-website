@@ -58,12 +58,13 @@ and never put real patient information into these records.
 **Real and working:** registration, login/logout, role-based route protection (middleware +
 server-side `requireRole` double-check), public pages reading live data from the database
 (doctors, pricing, FAQs, blog, testimonials), the contact form (stores real submissions), and
-role-specific dashboard stubs.
+the customer booking flow (doctor/time selection, intake form, demo payment confirmation, and
+patient dashboard history).
 
 **Mocked / not yet built** (by design, per the phased build plan — never silently faked in
-production, always labeled): appointment booking engine, payments, document upload, medicine
-orders, notifications (email/SMS/WhatsApp), video consultation links, and the full admin CMS.
-Each of those has a `TODO` or placeholder note in the relevant file.
+production, always labeled): live payment gateway/webhooks, document upload, medicine orders,
+notifications (email/SMS/WhatsApp), video consultation links, and the full admin CMS. The local
+booking flow records a clearly labeled demo payment so the customer journey can be tested safely.
 
 ## Moving to Postgres later
 
