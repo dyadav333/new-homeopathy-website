@@ -50,15 +50,42 @@ export function BookingForm({ doctors, preselected }: { doctors: Doctor[]; prese
     });
     const result = await response.json();
     if (!result.success) {
-      setStatus("error");
       setMessage(result.error?.message ?? "We could not complete the booking.");
       return;
     }
-    router.push(`/patient/dashboard?confirmed=${result.data.id}`);
-    router.refresh();
+    if (result.data.paymentProvider === "demo") {
+      router.push(`/patient/dashboard?confirmed=${result.data.id}`);
+      router.refresh();
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
+    script.onload = () => {
+      const checkout = new (window as unknown as { Razorpay: new (options: Record<string, unknown>) => { open: () => void } }).Razorpay({
+        key: result.data.razorpayKeyId,
+        amount: result.data.amountMinorUnits,
+        currency: result.data.currency,
+        name: "Homeopathy Wellness",
+        description: `${result.data.consultationType} with Dr. ${selectedDoctor.firstName} ${selectedDoctor.lastName}`,
+        order_id: result.data.razorpayOrderId,
+        handler: async (payment: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) => {
+          const verification = await fetch("/api/payments/verify", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ appointmentId: result.data.id, ...payment }) }).then((response) => response.json());
+          if (!verification.success) { setStatus("error"); setMessage(verification.error?.message ?? "Payment could not be verified."); return; }
+          router.push(`/patient/dashboard?confirmed=${result.data.id}`);
+          router.refresh();
+        },
+        modal: { ondismiss: () => { setStatus("error"); setMessage("Payment was cancelled. Your appointment remains pending until payment succeeds."); } },
+      });
+      checkout.open();
+    };
+    script.onerror = () => { setStatus("error"); setMessage("Razorpay checkout could not load. Please try again."); };
+    document.body.appendChild(script);
   }
 
   if (!doctor) return <p className="text-red-700">No doctors are currently available.</p>;
+  const selectedDoctor = doctor;
 
   return (
     <form onSubmit={submit} className="grid gap-8 lg:grid-cols-[1fr_0.7fr]">
@@ -94,7 +121,7 @@ export function BookingForm({ doctors, preselected }: { doctors: Doctor[]; prese
         <h2 className="mt-3 font-display text-2xl text-brand-900">Confirm your appointment</h2>
         <div className="mt-5 space-y-2 text-sm text-ink/70"><p>Dr. {doctor.firstName} {doctor.lastName}</p><p>{selectedService?.service.name}</p><p>{selectedType?.name}</p></div>
         <div className="mt-6 border-t border-brand-200 pt-5"><p className="text-sm text-ink/60">Consultation fee</p><p className="mt-1 text-3xl font-semibold text-brand-900">₹{((selectedService?.priceMinorUnits ?? 0) / 100).toLocaleString("en-IN")}</p></div>
-        <p className="mt-4 text-xs leading-5 text-ink/60">This local build uses a demo payment confirmation. A live gateway can replace this step before production launch.</p>
+        <p className="mt-4 text-xs leading-5 text-ink/60">Payments are securely processed by Razorpay when configured. Local development uses a clearly labeled demo payment.</p>
         {status === "error" && <p className="mt-4 text-sm text-red-700">{message}</p>}
         <Button type="submit" disabled={status === "loading"} className="mt-6 w-full disabled:opacity-60">{status === "loading" ? "Confirming…" : "Pay and confirm"}</Button>
       </aside>

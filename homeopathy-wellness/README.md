@@ -43,6 +43,22 @@ npm run dev
 
 Visit **http://localhost:3000**.
 
+## Razorpay setup
+
+Local development uses the clearly labeled demo payment flow when Razorpay credentials are
+empty. To enable real Razorpay checkout, add these values to `.env`:
+
+```bash
+PAYMENT_PROVIDER="razorpay"
+RAZORPAY_KEY_ID="rzp_test_..."
+RAZORPAY_KEY_SECRET="..."
+RAZORPAY_WEBHOOK_SECRET="..."
+```
+
+Configure Razorpay to send payment events to `/api/payments/webhook`. The appointment remains
+`PAYMENT_PENDING` until the server verifies the checkout signature or a valid webhook confirms
+the payment. Never expose `RAZORPAY_KEY_SECRET` or the webhook secret to the browser.
+
 ## Demo logins
 
 Password for all: `Password123!`

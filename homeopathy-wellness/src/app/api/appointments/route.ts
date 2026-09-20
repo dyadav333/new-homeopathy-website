@@ -1,6 +1,7 @@
 import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
+import { createRazorpayOrder, razorpayConfigured } from "@/lib/razorpay";
 import { ok, fail } from "@/lib/api-response";
 
 const ACTIVE_STATUSES = ["HELD", "PAYMENT_PENDING", "CONFIRMED", "RESCHEDULED", "IN_PROGRESS"];
@@ -63,6 +64,7 @@ export async function POST(req: Request) {
   });
   if (conflict) return fail("SLOT_UNAVAILABLE", "That time was just booked. Please choose another slot.", 409);
 
+  const provider = razorpayConfigured() ? "razorpay" : "demo";
   const appointment = await prisma.$transaction(async (tx) => {
     const created = await tx.appointment.create({
       data: {
@@ -72,7 +74,7 @@ export async function POST(req: Request) {
         startAtUtc,
         endAtUtc,
         patientTimezone: "Asia/Kolkata",
-        status: "CONFIRMED",
+        status: provider === "demo" ? "CONFIRMED" : "PAYMENT_PENDING",
         intakeResponse: {
           create: { concerns, medicalHistory: medicalHistory || null, currentMedicines: currentMedicines || null, consentedAt: new Date() },
         },
@@ -80,10 +82,10 @@ export async function POST(req: Request) {
           create: {
             amountMinorUnits: selection.priceMinorUnits,
             currency: selection.currency,
-            status: "PAID",
-            provider: "demo",
-            providerRef: `demo_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
-            paidAt: new Date(),
+            status: provider === "demo" ? "PAID" : "PAYMENT_PENDING",
+            provider,
+            providerRef: `${provider}_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
+            paidAt: provider === "demo" ? new Date() : null,
           },
         },
       },
@@ -92,12 +94,34 @@ export async function POST(req: Request) {
     return created;
   });
 
-  return ok({
-    id: appointment.id,
-    status: appointment.status,
-    doctorName: `${appointment.doctor.user.firstName} ${appointment.doctor.user.lastName}`,
-    consultationType: appointment.consultationType.name,
-    startAtUtc: appointment.startAtUtc,
-    amountMinorUnits: appointment.payment?.amountMinorUnits,
-  }, "Appointment confirmed.", 201);
+  if (provider === "demo") {
+    return ok({
+      id: appointment.id,
+      status: appointment.status,
+      paymentProvider: "demo",
+      doctorName: `${appointment.doctor.user.firstName} ${appointment.doctor.user.lastName}`,
+      consultationType: appointment.consultationType.name,
+      startAtUtc: appointment.startAtUtc,
+      amountMinorUnits: appointment.payment?.amountMinorUnits,
+    }, "Appointment confirmed using local demo payment.", 201);
+  }
+
+  try {
+    const order = await createRazorpayOrder(selection.priceMinorUnits, selection.currency, appointment.id);
+    await prisma.payment.update({ where: { id: appointment.payment!.id }, data: { providerOrderId: order.id } });
+    return ok({
+      id: appointment.id,
+      status: appointment.status,
+      paymentProvider: "razorpay",
+      razorpayOrderId: order.id,
+      razorpayKeyId: process.env.RAZORPAY_KEY_ID,
+      doctorName: `${appointment.doctor.user.firstName} ${appointment.doctor.user.lastName}`,
+      consultationType: appointment.consultationType.name,
+      startAtUtc: appointment.startAtUtc,
+      amountMinorUnits: appointment.payment?.amountMinorUnits,
+      currency: selection.currency,
+    }, "Continue to Razorpay to confirm your appointment.", 201);
+  } catch {
+    return fail("PAYMENT_PROVIDER_ERROR", "We could not start payment. Your slot is held as pending; please try again.", 502);
+  }
 }
