@@ -70,10 +70,11 @@ model Doctor {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  services     DoctorService[]
-  availability DoctorAvailability[]
-  blockedDates DoctorBlockedDate[]
-  appointments Appointment[]
+  services      DoctorService[]
+  availability  DoctorAvailability[]
+  blockedDates  DoctorBlockedDate[]
+  appointments  Appointment[]
+  prescriptions Prescription[]
 
   @@index([slug])
 }
@@ -157,6 +158,7 @@ model Patient {
   tests          TestRecord[]
   medicineOrders MedicineOrder[]
   feedback       Feedback[]
+  prescriptions  Prescription[]
 }
 
 model Pet {
@@ -206,6 +208,7 @@ model Appointment {
   intakeResponse IntakeResponse?
   payment        Payment?
   consultation   Consultation?
+  prescriptions  Prescription[]
   medicalRecords MedicalRecord[]
   feedback       Feedback[]
 
@@ -321,6 +324,22 @@ model ConsultationNote {
   createdAt      DateTime     @default(now())
 
   @@index([consultationId, createdAt])
+}
+
+model Prescription {
+  id            String      @id @default(cuid())
+  appointmentId String
+  appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  doctorId      String
+  doctor        Doctor      @relation(fields: [doctorId], references: [id])
+  patientId     String
+  patient       Patient     @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  medicine      String
+  instructions  String
+  createdAt     DateTime    @default(now())
+
+  @@index([patientId, createdAt])
+  @@index([doctorId, createdAt])
 }
 
 // ---------------------------------------------------------------------------

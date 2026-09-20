@@ -16,6 +16,8 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   const status = typeof body?.status === "string" ? body.status : "";
   const note = typeof body?.note === "string" ? body.note.trim() : "";
   const summary = typeof body?.summary === "string" ? body.summary.trim() : "";
+  const medicine = typeof body?.medicine === "string" ? body.medicine.trim() : "";
+  const instructions = typeof body?.instructions === "string" ? body.instructions.trim() : "";
   if (!allowedStatuses.includes(status) || (status !== "IN_PROGRESS" && !summary && !note)) return fail("VALIDATION_ERROR", "Choose a consultation status and provide a clinical summary or note.", 422);
 
   const consultation = await prisma.$transaction(async (tx) => {
@@ -25,6 +27,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       update: { status, summary: summary || undefined, startedAt: status === "IN_PROGRESS" && !appointment.consultation?.startedAt ? new Date() : undefined, completedAt: status !== "IN_PROGRESS" ? new Date() : undefined },
     });
     if (note) await tx.consultationNote.create({ data: { consultationId: record.id, authorId: session.user.id, note } });
+    if (medicine && instructions) await tx.prescription.create({ data: { appointmentId: appointment.id, doctorId: doctor.id, patientId: appointment.patientId, medicine, instructions } });
     await tx.appointment.update({ where: { id: appointment.id }, data: { status: status === "COMPLETED" || status === "FOLLOW_UP_REQUIRED" ? "COMPLETED" : "IN_PROGRESS", notes: summary || undefined } });
     return record;
   });
