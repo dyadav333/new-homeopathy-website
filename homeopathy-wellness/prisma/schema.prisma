@@ -1,0 +1,253 @@
+// ==========================================================================
+// Homeopathy Wellness — Database Schema
+// Phase 1: users/roles/auth, doctors, services, patients/pets, appointments
+// (booking-engine logic), plus lightweight CMS models (blog/FAQ/testimonials)
+// so the public pages have real data to read from day one.
+//
+// NOTE: SQLite has no native enum type, so what would be Prisma `enum`
+// fields (Role, PatientCategory, AppointmentStatus, ContentStatus) are
+// plain `String` fields here. The allowed values are the same — they're
+// just enforced in application code (see src/types/enums.ts) instead of
+// at the database level. If/when you move to Postgres, you can convert
+// these back to real `enum` blocks for database-level enforcement.
+//
+// Later phases extend this file with Consultation, Document, Order, Payment,
+// Notification, Message, PricingRule, and AuditLog models — additive changes,
+// not rewrites, via `npm run db:migrate`.
+// ==========================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Auth & Roles
+// Allowed values (enforced in src/types/enums.ts):
+// SUPER_ADMIN | ADMIN | DOCTOR | PATIENT | STAFF
+// ---------------------------------------------------------------------------
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String
+  role          String    @default("PATIENT")
+  firstName     String
+  lastName      String
+  phone         String?
+  isActive      Boolean   @default(true)
+  emailVerified DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  doctor  Doctor?
+  patient Patient?
+
+  @@index([role])
+}
+
+// ---------------------------------------------------------------------------
+// Doctors & Services
+// ---------------------------------------------------------------------------
+
+model Doctor {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  slug            String   @unique
+  qualifications  String
+  bio             String
+  photoUrl        String?
+  yearsExperience Int?
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  services     DoctorService[]
+  availability DoctorAvailability[]
+  blockedDates DoctorBlockedDate[]
+  appointments Appointment[]
+
+  @@index([slug])
+}
+
+// Allowed values for `category` (enforced in src/types/enums.ts): HUMAN | ANIMAL
+model Service {
+  id          String   @id @default(cuid())
+  name        String
+  category    String
+  description String
+  createdAt   DateTime @default(now())
+
+  consultationTypes ConsultationType[]
+  doctorServices    DoctorService[]
+}
+
+model ConsultationType {
+  id              String   @id @default(cuid())
+  serviceId       String
+  service         Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  name            String
+  durationMinutes Int
+  isFollowUp      Boolean  @default(false)
+
+  appointments Appointment[]
+
+  @@index([serviceId])
+}
+
+model DoctorService {
+  id              String   @id @default(cuid())
+  doctorId        String
+  doctor          Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  serviceId       String
+  service         Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  priceMinorUnits Int
+  currency        String   @default("INR")
+
+  @@unique([doctorId, serviceId])
+}
+
+model DoctorAvailability {
+  id        String @id @default(cuid())
+  doctorId  String
+  doctor    Doctor @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  dayOfWeek Int
+  startTime String
+  endTime   String
+  timezone  String @default("Asia/Kolkata")
+
+  @@index([doctorId])
+}
+
+model DoctorBlockedDate {
+  id       String   @id @default(cuid())
+  doctorId String
+  doctor   Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  date     DateTime
+  reason   String?
+
+  @@index([doctorId])
+}
+
+// ---------------------------------------------------------------------------
+// Patients & Pets
+// ---------------------------------------------------------------------------
+
+model Patient {
+  id          String    @id @default(cuid())
+  userId      String    @unique
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dateOfBirth DateTime?
+  address     String?
+  country     String?
+  createdAt   DateTime  @default(now())
+
+  pets         Pet[]
+  appointments Appointment[]
+}
+
+model Pet {
+  id          String    @id @default(cuid())
+  patientId   String
+  patient     Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  name        String
+  species     String
+  breed       String?
+  sex         String?
+  dateOfBirth DateTime?
+  weightKg    Float?
+  notes       String?
+  createdAt   DateTime  @default(now())
+
+  appointments Appointment[]
+
+  @@index([patientId])
+}
+
+// ---------------------------------------------------------------------------
+// Appointments
+// Allowed values for `status` (enforced in src/types/enums.ts):
+// HELD | PAYMENT_PENDING | CONFIRMED | RESCHEDULE_REQUESTED | RESCHEDULED |
+// IN_PROGRESS | COMPLETED | CANCELLED | NO_SHOW | REFUND_PENDING | REFUNDED
+// ---------------------------------------------------------------------------
+
+model Appointment {
+  id                 String           @id @default(cuid())
+  doctorId           String
+  doctor             Doctor           @relation(fields: [doctorId], references: [id])
+  patientId          String
+  patient            Patient          @relation(fields: [patientId], references: [id])
+  petId              String?
+  pet                Pet?             @relation(fields: [petId], references: [id])
+  consultationTypeId String
+  consultationType   ConsultationType @relation(fields: [consultationTypeId], references: [id])
+
+  startAtUtc      DateTime
+  endAtUtc        DateTime
+  patientTimezone String
+
+  status     String   @default("HELD")
+  notes      String?
+  meetingUrl String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([doctorId, startAtUtc])
+  @@index([patientId])
+  @@index([status])
+}
+
+// ---------------------------------------------------------------------------
+// Lightweight CMS — blog, FAQ, testimonials, contact form
+// Allowed values for BlogPost.status: DRAFT | PUBLISHED | ARCHIVED
+// Allowed values for Testimonial.category: HUMAN | ANIMAL
+// ---------------------------------------------------------------------------
+
+model BlogPost {
+  id          String    @id @default(cuid())
+  title       String
+  slug        String    @unique
+  excerpt     String
+  content     String
+  authorName  String
+  status      String    @default("DRAFT")
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+}
+
+model FAQ {
+  id        String @id @default(cuid())
+  category  String
+  question  String
+  answer    String
+  sortOrder Int    @default(0)
+}
+
+model Testimonial {
+  id          String   @id @default(cuid())
+  authorName  String
+  quote       String
+  category    String?
+  isPublished Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+model ContactSubmission {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  message   String
+  createdAt DateTime @default(now())
+}
+
+model SystemSetting {
+  key   String @id
+  value String
+}
