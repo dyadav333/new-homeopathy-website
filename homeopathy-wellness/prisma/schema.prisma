@@ -39,6 +39,9 @@ model User {
   firstName     String
   lastName      String
   phone         String?
+  gender        String?
+  bloodGroup    String?
+  photoData     String?
   isActive      Boolean   @default(true)
   emailVerified DateTime?
   createdAt     DateTime  @default(now())
@@ -145,10 +148,15 @@ model Patient {
   dateOfBirth DateTime?
   address     String?
   country     String?
+  pincode     String?
   createdAt   DateTime  @default(now())
 
-  pets         Pet[]
-  appointments Appointment[]
+  pets           Pet[]
+  appointments   Appointment[]
+  medicalRecords MedicalRecord[]
+  tests          TestRecord[]
+  medicineOrders MedicineOrder[]
+  feedback       Feedback[]
 }
 
 model Pet {
@@ -197,6 +205,8 @@ model Appointment {
 
   intakeResponse IntakeResponse?
   payment        Payment?
+  medicalRecords MedicalRecord[]
+  feedback       Feedback[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -228,6 +238,61 @@ model Payment {
   providerRef      String      @unique
   paidAt           DateTime?
   createdAt        DateTime    @default(now())
+}
+
+model MedicalRecord {
+  id            String       @id @default(cuid())
+  patientId     String
+  patient       Patient      @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  appointmentId String?
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  title         String
+  fileName      String
+  mimeType      String
+  contentData   String
+  uploadedBy    String
+  createdAt     DateTime     @default(now())
+
+  @@index([patientId])
+}
+
+model TestRecord {
+  id        String   @id @default(cuid())
+  patientId String
+  patient   Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  name      String
+  status    String   @default("REQUESTED")
+  result    String?
+  reportId  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([patientId])
+}
+
+model MedicineOrder {
+  id              String   @id @default(cuid())
+  patientId       String
+  patient         Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  status          String   @default("DRAFT")
+  totalMinorUnits Int      @default(0)
+  currency        String   @default("INR")
+  items           String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([patientId, status])
+}
+
+model Feedback {
+  id            String       @id @default(cuid())
+  patientId     String
+  patient       Patient      @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  appointmentId String?
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  rating        Int
+  message       String
+  createdAt     DateTime     @default(now())
 }
 
 // ---------------------------------------------------------------------------

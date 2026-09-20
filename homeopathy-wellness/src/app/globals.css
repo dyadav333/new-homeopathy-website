@@ -16,6 +16,26 @@ body {
   color: theme("colors.ink");
 }
 
+.dashboard-frame { display: grid; grid-template-columns: 260px minmax(0, 1fr); min-height: calc(100vh - 4rem); }
+.dashboard-nav { background: #173f3a; color: #e8f1e9; padding: 2rem 1.25rem 1.25rem; display: flex; flex-direction: column; gap: 2rem; }
+.dashboard-mark { display: flex; align-items: center; gap: .75rem; padding: 0 .65rem; }
+.dashboard-mark > span { display: grid; place-items: center; width: 2.6rem; height: 2.6rem; border-radius: 1rem; background: #d8a15d; color: #173f3a; font-weight: 800; letter-spacing: .05em; }
+.dashboard-mark strong, .dashboard-mark small { display: block; } .dashboard-mark strong { font-family: var(--font-display); font-size: 1.05rem; } .dashboard-mark small { color: #a9c3b9; font-size: .7rem; margin-top: .15rem; }
+.dashboard-nav nav { display: grid; gap: .35rem; }
+.dashboard-nav nav a { display: flex; align-items: center; gap: .7rem; border-radius: .7rem; color: #b9d0c7; padding: .75rem .7rem; font-size: .88rem; transition: background .2s, color .2s; }
+.dashboard-nav nav a:hover, .dashboard-nav nav a.active { background: #2a5b53; color: white; }
+.nav-dot { width: .4rem; height: .4rem; border: 1px solid #83afa0; border-radius: 999px; } .active .nav-dot { background: #d8a15d; border-color: #d8a15d; }
+.provider-switch { margin-top: auto; padding: 1rem; border: 1px solid #47746a; border-radius: .85rem; color: white; } .provider-switch strong, .provider-switch span { display: block; } .provider-switch span { margin-top: .45rem; color: #b9d0c7; font-size: .75rem; line-height: 1.4; } .provider-switch b { float: right; color: #e4b16f; font-size: 1.1rem; }
+.dashboard-logout { border: 0; background: none; color: #b9d0c7; text-align: left; padding: .5rem .7rem; cursor: pointer; } .dashboard-logout span { float: right; }
+.dashboard-main { padding: 2rem clamp(1rem, 4vw, 4rem); max-width: 1200px; width: 100%; }
+.dashboard-kicker { color: #b97837; text-transform: uppercase; letter-spacing: .16em; font-size: .7rem; font-weight: 700; }
+.dashboard-heading { display: flex; justify-content: space-between; align-items: end; gap: 1rem; margin-bottom: 2rem; } .dashboard-heading h1 { margin-top: .45rem; color: #173f3a; font-family: var(--font-display); font-size: clamp(2rem, 4vw, 3rem); } .dashboard-heading p { margin-top: .45rem; color: #657873; }
+.dashboard-card { border: 1px solid #e0e9e2; background: white; border-radius: 1rem; padding: 1.25rem; box-shadow: 0 10px 30px rgba(23,63,58,.06); }
+.dashboard-stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; } .dashboard-stat { min-height: 7rem; } .dashboard-stat small { color: #657873; } .dashboard-stat strong { display: block; margin-top: .6rem; color: #173f3a; font-family: var(--font-display); font-size: 2rem; }
+.profile-form { display: grid; gap: 1.2rem; } .profile-form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; } .profile-form label { display: grid; gap: .4rem; color: #657873; font-size: .8rem; } .profile-form input, .profile-form select, .profile-form textarea { width: 100%; border: 1px solid #d5e0d9; border-radius: .55rem; padding: .7rem .8rem; color: #263d38; background: white; } .profile-form input:disabled { background: #f0f3f1; color: #95a39e; } .profile-actions { display: flex; align-items: center; justify-content: space-between; gap: 1rem; border-top: 1px solid #e0e9e2; padding-top: 1rem; color: #557b6e; font-size: .85rem; } .profile-actions button { border: 0; border-radius: .55rem; background: #2b9f9a; color: white; padding: .75rem 1.25rem; font-weight: 700; cursor: pointer; }
+.dashboard-list { display: grid; gap: .8rem; margin-top: 1rem; } .dashboard-list-item { display: flex; justify-content: space-between; gap: 1rem; border: 1px solid #e0e9e2; border-radius: .75rem; padding: 1rem; background: white; } .dashboard-list-item h3 { color: #173f3a; font-family: var(--font-display); } .dashboard-list-item p { margin-top: .25rem; color: #657873; font-size: .85rem; }
+@media (max-width: 760px) { .dashboard-frame { grid-template-columns: 1fr; } .dashboard-nav { position: relative; padding: 1rem; } .dashboard-nav nav { display: flex; overflow-x: auto; padding-bottom: .25rem; } .dashboard-nav nav a { flex: 0 0 auto; } .dashboard-nav .provider-switch, .dashboard-nav .dashboard-logout { display: none; } .dashboard-heading { align-items: start; flex-direction: column; } .dashboard-stat-grid, .profile-form-grid { grid-template-columns: 1fr; } .dashboard-main { padding: 1.5rem 1rem 3rem; } }
+
 .prose-content p {
   margin-bottom: 1rem;
   line-height: 1.7;

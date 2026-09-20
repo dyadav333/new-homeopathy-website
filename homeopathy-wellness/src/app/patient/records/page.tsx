@@ -1,0 +1,6 @@
+import { redirect } from "next/navigation";
+import { prisma } from "@/lib/prisma";
+import { requireRole } from "@/lib/require-role";
+import { DashboardNav } from "../DashboardNav";
+import { RecordsPanel } from "./RecordsPanel";
+export default async function RecordsPage() { const { authorized, session } = await requireRole(["PATIENT"]); if (!authorized) redirect("/login"); const patient = await prisma.patient.findUnique({ where: { userId: session!.user.id }, include: { medicalRecords: { orderBy: { createdAt: "desc" } } } }); return <div className="dashboard-frame"><DashboardNav canSwitch={false} /><main className="dashboard-main"><div className="dashboard-heading"><div><p className="dashboard-kicker">Private files</p><h1>My medical records</h1><p>Upload reports yourself. Doctor and staff uploads will be labelled when added.</p></div></div><div className="dashboard-card"><RecordsPanel /></div><div className="dashboard-list">{patient?.medicalRecords.map((record) => <div className="dashboard-list-item" key={record.id}><div><h3>{record.title}</h3><p>{record.fileName} · Uploaded by {record.uploadedBy === "PATIENT" ? "you" : record.uploadedBy.toLowerCase()}</p></div><a className="text-sm font-semibold text-brand-700" href={`/api/patient/records/${record.id}`}>Download</a></div>)}</div></main></div>; }
