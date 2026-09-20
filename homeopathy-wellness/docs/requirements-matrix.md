@@ -14,7 +14,7 @@
 | Tests | Unified tests page | TestRecord model | Initial surface |
 | Medicine orders | Create/history page | MedicineOrder model/API | Initial surface; catalog/payment pending |
 | Feedback | Feedback form | Feedback model/API | Initial surface |
-| Doctor workflow | Dashboard route only | No consultation-note workflow yet | Pending |
+| Doctor workflow | Doctor appointment queue and consultation form | Doctor-owned consultation/note API and Consultation records | Initial workflow working |
 | Admin workflow | Dashboard route only | No CRUD management APIs yet | Pending |
 | Live payments | Gateway abstraction needed | Webhook/idempotency needed | Pending |
 | Notifications | No provider UI | Email/SMS/WhatsApp abstraction needed | Pending |

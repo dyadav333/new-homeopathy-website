@@ -14,6 +14,10 @@
 
 The doctor/admin route families are intentionally the next delivery phase. Their API authorization must be implemented before exposing management screens.
 
+The doctor dashboard shows only that practitioner&apos;s assigned appointments, patient intake context,
+record/pet counts, and consultation controls. The doctor API verifies ownership server-side before
+updating consultation status or notes.
+
 ## API modules currently present
 
 - Authentication: registration and NextAuth credentials session.

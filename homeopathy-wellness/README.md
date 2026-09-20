@@ -81,7 +81,9 @@ server-side `requireRole` double-check), public pages reading live data from the
 the customer booking flow (doctor/time selection, intake form, demo payment confirmation, and
 patient dashboard history). The patient workspace also includes profile editing, local profile
 photos, appointment history/cancellation, private local record upload/download, tests, medicine
-order creation/history, feedback, and settings.
+order creation/history, feedback, and settings. Doctors can now review their assigned appointment
+queue, patient intake context, record/pet counts, and save consultation status, summaries, and
+private notes.
 
 **Mocked / not yet built** (by design, per the phased build plan — never silently faked in
 production, always labeled): live payment gateway/webhooks, production object storage and virus
